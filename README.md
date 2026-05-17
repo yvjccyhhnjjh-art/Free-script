@@ -1,161 +1,207 @@
--- [[ Marvellous Smackdown - Kira Gelişmiş Strateji Scripti v10 ]] --
+-- Mobile Özel Tasarım: Afganistan Sıfır Tepme Menüsü
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
-_G.PurpleESP = false
-_G.SpeedHack = false
-_G.BigHitbox = false
-_G.BringEnemies = false
+-- Ayarlar
+getgenv().NoRecoil = false -- Geri Tepme Engelleyici
+getgenv().Aimbot = false -- Otomatik Hedef Kilitleme
+getgenv().EspWallhack = false -- Dağ Arkası Röntgen
+getgenv().TacticalSpeed = false -- Güvenli Hız Takviyesi
 
--- // MENÜ TASARIMI
+-- ==========================================
+-- MOBİL ARAYÜZ (GUI) TASARIMI
+-- ==========================================
 local ScreenGui = Instance.new("ScreenGui")
-pcall(function() ScreenGui.Parent = game.CoreGui end)
-if not ScreenGui.Parent then ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
+ScreenGui.Name = "Afghanistan_MobileUI"
+ScreenGui.ResetOnSpawn = false
+local parent = CoreGui:FindFirstChild("RobloxGui") or LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.Parent = parent
 
+-- Ana Menü
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 200, 0, 240)
-MainFrame.Position = UDim2.new(0.65, 0, 0.25, 0)
-MainFrame.BackgroundColor3 = Color3.fromRGB(25, 15, 35) -- Derin mor tema
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 230, 0, 260)
+MainFrame.Position = UDim2.new(0.1, 0, 0.25, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(35, 30, 25) -- Çöl ve kaya temalı koyu kahve/bej
+MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
 MainFrame.Draggable = true
+MainFrame.Visible = true
 MainFrame.Parent = ScreenGui
 
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 12)
+MainCorner.Parent = MainFrame
+
+-- Başlık
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 35)
-Title.BackgroundColor3 = Color3.fromRGB(50, 20, 70)
-Title.Text = "Kira Strateji Modu v10"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.BackgroundColor3 = Color3.fromRGB(50, 40, 35)
+Title.Text = "  AFGHANISTAN AI MENU"
+Title.TextColor3 = Color3.fromRGB(240, 230, 210)
+Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.Font = Enum.Font.SourceSansBold
+Title.TextSize = 14
 Title.Parent = MainFrame
 
-local function createBtn(text, pos)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0.9, 0, 0, 35)
-    btn.Position = pos
-    btn.BackgroundColor3 = Color3.fromRGB(130, 20, 150)
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.Text = text
-    btn.Parent = MainFrame
-    return btn
-end
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 12)
+TitleCorner.Parent = Title
 
-local BtnESP = createBtn("Mor ESP: KAPALI", UDim2.new(0.05, 0, 0.2, 0))
-local BtnHitbox = createBtn("Hitbox Devleştirici: KAPALI", UDim2.new(0.05, 0, 0.4, 0))
-local BtnBring = createBtn("Herkesi Önüne Çek: KAPALI", UDim2.new(0.05, 0, 0.6, 0))
-local BtnSpeed = createBtn("Hız Hilesi: KAPALI", UDim2.new(0.05, 0, 0.8, 0))
+-- Liste Düzeni
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.Padding = UDim.new(0, 8)
+UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout.Parent = MainFrame
 
--- // 1. MOR ESP (WALLHACK) SİSTEMİ
-task.spawn(function()
-    while true do
-        task.wait(1)
-        if _G.PurpleESP then
-            pcall(function()
-                for _, plr in pairs(Players:GetPlayers()) do
-                    if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-                        if not plr.Character:FindFirstChild("PurpleHighlight") then
-                            local hl = Instance.new("Highlight")
-                            hl.Name = "PurpleHighlight"
-                            hl.FillColor = Color3.fromRGB(150, 0, 255) -- Parlak Mor
-                            hl.FillTransparency = 0.4
-                            hl.OutlineColor = Color3.fromRGB(255, 255, 255)
-                            hl.OutlineTransparency = 0
-                            hl.Adornee = plr.Character
-                            hl.Parent = plr.Character
-                        end
-                    end
-                end
-            end)
+local Pad = Instance.new("Frame")
+Pad.Size = UDim2.new(1, 0, 0, 45)
+Pad.BackgroundTransparency = 1
+Pad.LayoutOrder = 0
+Pad.Parent = MainFrame
+
+-- BUTON FONKSİYONU
+local function createButton(text, layoutOrder, callback)
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(0, 200, 0, 38)
+    Btn.BackgroundColor3 = Color3.fromRGB(55, 50, 45)
+    Btn.Text = text .. " [KAPALI]"
+    Btn.TextColor3 = Color3.fromRGB(200, 190, 180)
+    Btn.Font = Enum.Font.SourceSansBold
+    Btn.TextSize = 13
+    Btn.LayoutOrder = layoutOrder
+    Btn.Parent = MainFrame
+    
+    local BtnCorner = Instance.new("UICorner")
+    BtnCorner.CornerRadius = UDim.new(0, 6)
+    BtnCorner.Parent = Btn
+    
+    local state = false
+    Btn.MouseButton1Click:Connect(function()
+        state = not state
+        if state then
+            Btn.BackgroundColor3 = Color3.fromRGB(200, 150, 80) -- Çöl sarısı / Altın rengi aktif butonu
+            Btn.TextColor3 = Color3.fromRGB(0, 0, 0)
+            Btn.Text = text .. " [AKTİF]"
         else
-            pcall(function()
-                for _, plr in pairs(Players:GetPlayers()) do
-                    if plr.Character and plr.Character:FindFirstChild("PurpleHighlight") then
-                        plr.Character.PurpleHighlight:Destroy()
-                    end
-                end
-            end)
+            Btn.BackgroundColor3 = Color3.fromRGB(55, 50, 45)
+            Btn.TextColor3 = Color3.fromRGB(200, 190, 180)
+            Btn.Text = text .. " [KAPALI]"
         end
-    end
-end)
-
--- // 2. HITBOX DEVLEŞTİRİCİ (Iskalamayı İmkansız Kıl)
-task.spawn(function()
-    while true do
-        task.wait(0.5)
-        if _G.BigHitbox then
-            pcall(function()
-                for _, plr in pairs(Players:GetPlayers()) do
-                    if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-                        local hrp = plr.Character.HumanoidRootPart
-                        hrp.Size = Vector3.new(20, 20, 20) -- Düşmanların tıklama alanını devasa yapar
-                        hrp.Transparency = 0.7
-                        hrp.Color = Color3.fromRGB(150, 0, 255)
-                        hrp.CanCollide = false
-                    end
-                end
-            end)
-        end
-    end
-end)
-
--- // 3. HERKESİ ÖNÜNE ÇEKLME (Bring Players / Teleport Exploit)
-task.spawn(function()
-    while true do
-        task.wait(0.3)
-        if _G.BringEnemies and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            pcall(function()
-                local myPos = LocalPlayer.Character.HumanoidRootPart.CFrame
-                for _, plr in pairs(Players:GetPlayers()) do
-                    if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-                        -- Tüm düşmanları tam önünüze (2 birim ileriye) ışınlar, böylece düz vuruşla veya defterle tek seferde hepsini biçebilirsiniz.
-                        plr.Character.HumanoidRootPart.CFrame = myPos * CFrame.new(0, 0, -3)
-                    end
-                end
-            end)
-        end
-    end
-end)
-
--- // 4. GARANTİLİ SÜPER SPRINT
-task.spawn(function()
-    while true do
-        task.wait(0.1)
-        if _G.SpeedHack and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-            LocalPlayer.Character.Humanoid.WalkSpeed = 45
-        end
-    end
-end)
-
--- // BUTON TETİKLEYİCİLERİ
-local function updateBtnState(btn, condition, textOn, textOff)
-    btn.Text = condition and textOn or textOff
-    btn.BackgroundColor3 = condition and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(130, 20, 150)
+        callback(state)
+    end)
 end
 
-BtnESP.MouseButton1Click:Connect(function()
-    _G.PurpleESP = not _G.PurpleESP
-    updateBtnState(BtnESP, _G.PurpleESP, "Mor ESP: AÇIK", "Mor ESP: KAPALI")
+-- Taktik Butonları Menüye Ekle
+createButton("Sıfır Geri Tepme (No Recoil)", 1, function(v) getgenv().NoRecoil = v end)
+createButton("Yumuşak Kilitlenme (Aimbot)", 2, function(v) getgenv().Aimbot = v end)
+createButton("Arazi Röntgeni (ESP)", 3, function(v) getgenv().EspWallhack = v end)
+createButton("Taktik Koşu Hızı", 4, function(v) getgenv().TacticalSpeed = v end)
+
+-- MENÜ AÇ/KAPAT BUTONU
+local ToggleMenuBtn = Instance.new("TextButton")
+ToggleMenuBtn.Size = UDim2.new(0, 65, 0, 65)
+ToggleMenuBtn.Position = UDim2.new(0.02, 0, 0.25, 0)
+ToggleMenuBtn.BackgroundColor3 = Color3.fromRGB(200, 150, 80)
+ToggleMenuBtn.Text = "OPERASYON"
+ToggleMenuBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+ToggleMenuBtn.Font = Enum.Font.SourceSansBold
+ToggleMenuBtn.TextSize = 10
+ToggleMenuBtn.Parent = ScreenGui
+
+local MenuBtnCorner = Instance.new("UICorner")
+MenuBtnCorner.CornerRadius = UDim.new(0, 32)
+MenuBtnCorner.Parent = ToggleMenuBtn
+
+ToggleMenuBtn.MouseButton1Click:Connect(function()
+    MainFrame.Visible = not MainFrame.Visible
 end)
 
-BtnHitbox.MouseButton1Click:Connect(function()
-    _G.BigHitbox = not _G.BigHitbox
-    updateBtnState(BtnHitbox, _G.BigHitbox, "Hitbox: DEV MOD", "Hitbox Devleştirici: KAPALI")
-    if not _G.BigHitbox then
-        for _, plr in pairs(Players:GetPlayers()) do
-            pcall(function() plr.Character.HumanoidRootPart.Size = Vector3.new(2, 2, 1) plr.Character.HumanoidRootPart.Transparency = 0 end)
+-- ==========================================
+-- TAKTİK SİSTEMLER VE MOBİL INTEGRASYON
+-- ==========================================
+
+-- En Yakın Düşmanı Seçen Algoritma
+local function getClosestPlayer()
+    local closestPlayer = nil
+    local shortestDistance = math.huge
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
+            if player.Team ~= LocalPlayer.Team or LocalPlayer.Team == nil then
+                local pos, onScreen = Camera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
+                if onScreen then
+                    local mousePos = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
+                    local distance = (Vector2.new(pos.X, pos.Y) - mousePos).Magnitude
+                    if distance < shortestDistance and distance < 250 then
+                        shortestDistance = distance
+                        closestPlayer = player
+                    end
+                end
+            end
         end
     end
-end)
+    return closestPlayer
+end
 
-BtnBring.MouseButton1Click:Connect(function()
-    _G.BringEnemies = not _G.BringEnemies
-    updateBtnState(BtnBring, _G.BringEnemies, "Bring: AKTİF", "Herkesi Önüne Çek: KAPALI")
-end)
+-- Arka Plan Döngüsü
+RunService.RenderStepped:Connect(function()
+    -- 1. Sıfır Geri Tepme (No Recoil Modülü)
+    if getgenv().NoRecoil and LocalPlayer.Character then
+        local tool = LocalPlayer.Character:FindFirstChildOfClass("Tool")
+        if tool then
+            -- Oyundaki genel silah script değişkenlerini (Recoil, CamShake, Kickback) yakalar ve sıfırlar
+            for _, v in ipairs(tool:GetDescendants()) do
+                if v:IsA("NumberValue") or v:IsA("IntValue") then
+                    if string.find(string.lower(v.Name), "recoil") or string.find(string.lower(v.Name), "kick") or string.find(string.lower(v.Name), "shake") or string.find(string.lower(v.Name), "spread") then
+                        v.Value = 0
+                    end
+                end
+            end
+        end
+    end
 
-BtnSpeed.MouseButton1Click:Connect(function()
-    _G.SpeedHack = not _G.SpeedHack
-    updateBtnState(BtnSpeed, _G.SpeedHack, "Süper Sprint: AÇIK", "Hız Hilesi: KAPALI")
-    if not _G.SpeedHack and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+    -- 2. Yumuşak Kilitlenme (Aimbot)
+    if getgenv().Aimbot then
+        local target = getClosestPlayer()
+        if target and target.Character and target.Character:FindFirstChild("Head") then
+            Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Character.Head.Position)
+        end
+    end
+
+    -- 3. Arazi Röntgeni (ESP)
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local hrp = player.Character.HumanoidRootPart
+            local highlight = hrp:FindFirstChild("AfghanistanESP")
+            
+            if getgenv().EspWallhack and (player.Team ~= LocalPlayer.Team or LocalPlayer.Team == nil) then
+                if not highlight then
+                    local box = Instance.new("BoxHandleAdornment")
+                    box.Name = "AfghanistanESP"
+                    box.Size = Vector3.new(4, 6, 4)
+                    box.Color3 = Color3.fromRGB(255, 65, 65) -- Düşman askerleri belirgin kırmızı görünür
+                    box.AlwaysOnTop = true
+                    box.ZIndex = 10
+                    box.Transparency = 0.6
+                    box.Adornee = hrp
+                    box.Parent = hrp
+                end
+            else
+                if highlight then highlight:Destroy() end
+            end
+        end
+    end
+
+    -- 4. Taktik Koşu Hızı (Ban Riski Yaratmayan Hafif Çarpan)
+    if getgenv().TacticalSpeed and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.WalkSpeed = 22 -- Çöl arazisinde rahat hareket etmek için ideal hız
+    elseif not getgenv().TacticalSpeed and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
         LocalPlayer.Character.Humanoid.WalkSpeed = 16
     end
 end)
+
+print("[AFGHANISTAN AI]: Tepme engelleyici ve taktik menü başarıyla yüklendi!")
